@@ -1,0 +1,6 @@
+@ProyGestorGym_HostAddress = http://localhost:5130
+
+GET {{ProyGestorGym_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
