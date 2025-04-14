@@ -9,7 +9,7 @@ namespace ProyGestorGym
 #if DEBUG
         public static string cadenaConexion = @"Server=localhost;UserId=root1;Password=21021192;Port=3306;Database=GestorReservasGimnasio;";
 #else
-public static string cadenaConexion = @"Server=db16343.databaseasp.net; Database=db16343; User Id=db16343; Password=Ka4_6E@sFc9#; Encrypt=False; MultipleActiveResultSets=True;";
+        public static string cadenaConexion = @"Server=db16794.public.databaseasp.net; Database=db16794; Uid=db16794; Pwd=Bo9!+2XkF#x3; SslMode=Preferred; ";
 #endif
         public static TipoBD TipoBD = TipoBD.MySQL;
 
