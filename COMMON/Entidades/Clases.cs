@@ -13,7 +13,7 @@ namespace COMMON.Entidades
         public string Descripcion { get; set; }
         public int CupoMaximo { get; set; }
         public DateTime Fecha { get; set; }
-        public TimeSpan Hora { get; set; }
+        public string Hora { get; set; }
         public int EntrenadorId { get; set; }
     }
 }

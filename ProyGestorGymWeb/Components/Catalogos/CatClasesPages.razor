@@ -1,0 +1,142 @@
+﻿@page "/catalogos/Clases"
+
+<h3>Registro de Clases</h3>
+
+<br />
+<RadzenButton Text="Agregar" Icon="add" ButtonStyle="ButtonStyle.Success" Click="(()=>Editar(new Clases()))" />
+<br />
+<br />
+<RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="30" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                Data="@clases" TItem="Clases">
+    <Columns>
+        <RadzenDataGridColumn Property="Id" Title="ID" Width="50" />
+        <RadzenDataGridColumn Property="Nombre" Title="Nombre" Width="50" />
+        <RadzenDataGridColumn Property="Descripcion" Title="Descripcion" Width="50" />
+        <RadzenDataGridColumn Property="CupoMaximo" Title="CupoMaximo" Width="50" />
+        <RadzenDataGridColumn Property="Fecha" Title="Fecha" Width="50" />
+        <RadzenDataGridColumn Property="Hora" Title="Hora" Width="50" />
+        <RadzenDataGridColumn Title="Acciones">
+            <Template Context="data">
+                <RadzenButton Click="(()=>Editar(data))" ButtonStyle="ButtonStyle.Warning" Icon="edit" />
+                <RadzenButton Click="(()=>Eliminar(data))" ButtonStyle="ButtonStyle.Danger" Icon="delete" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    ClasesManager clasesManager;
+    List<Clases> clases;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        clasesManager = FabricManager.ClasesManager;
+        ActualizarTabla();
+    }
+
+    void ActualizarTabla()
+    {
+        clases = clasesManager.ObtenerTodos().Result ?? new List<Clases>();
+        InvokeAsync(StateHasChanged);
+    }
+
+    async Task Editar(Clases clases)
+    {
+        string titulo = clases.Id == 0 ? "Nueva Clase" : $"Editar {clases.Nombre}";
+        var result = await dialogService.OpenAsync(titulo, ds =>
+
+    @<RadzenStack Gap="1.5rem">
+        <div class="row">
+            <div class="col-4">Nombre</div>
+            <div class="col-8">
+                <RadzenTextBox @bind-Value="clases.Nombre" Placeholder="Nombre de la clase" class="w-100" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-4">Descripción</div>
+            <div class="col-8">
+                <RadzenTextBox @bind-Value="clases.Descripcion" Placeholder="Ej. Sesión intensiva ..." class="w-100" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-4">Cupo Máximo</div>
+            <div class="col-8">
+                <RadzenNumeric @bind-Value="clases.CupoMaximo" Placeholder="Capacidad máxima" Style="width: 100%;" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-4">Fecha</div>
+            <div class="col-8">
+                <RadzenDatePicker @bind-Value="clases.Fecha" Style="width: 100%;" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-4">Hora</div>
+            <div class="col-8">
+                <RadzenTextBox @bind-Value="clases.Hora" Placeholder="Ej. 10:00 AM" class="w-100" />
+            </div>
+        </div>
+
+        <div class="row mt-4 justify-content-end">
+            <div class="col-auto">
+                <RadzenButton Text="Guardar" Icon="save" ButtonStyle="ButtonStyle.Primary" Click="(() => Guardar(clases))" Style="min-width: 120px;" />
+            </div>
+            <div class="col-auto">
+                <RadzenButton Text="Cancelar" Icon="close" ButtonStyle="ButtonStyle.Secondary" Click="(() => dialogService.Close(false))" Style="min-width: 120px;" />
+            </div>
+        </div>
+    </RadzenStack>
+
+    , new DialogOptions()
+    {
+        Draggable = true,
+        ShowClose = true,
+        Resizable = true,
+        Width = "500px",
+        Height = "400px"
+    });
+    }
+
+    async Task Guardar(Clases clases)
+    {
+        Clases resultado;
+        if (clases.Id == 0)
+        {
+            resultado = await clasesManager.Agregar(clases);
+        }
+        else
+        {
+            resultado = await clasesManager.Modificar(clases);
+        }
+
+        if (resultado != null)
+        {
+            dialogService.Close(true);
+            ActualizarTabla();
+        }
+        else
+        {
+            await dialogService.Alert(clasesManager.Error, "Error al guardar");
+        }
+    }
+
+    async Task Eliminar(Clases clases)
+    {
+        var r = await dialogService.Confirm($"¿Realmente deseas eliminar la clase '{clases.Nombre}'?", "Advertencia",
+            new ConfirmOptions() { OkButtonText = "Sí", CancelButtonText = "No" });
+
+        if (r.Value)
+        {
+            var eliminado = await clasesManager.Eliminar(clases.Id.ToString());
+            if (eliminado)
+            {
+                ActualizarTabla();
+            }
+        }
+    }
+}

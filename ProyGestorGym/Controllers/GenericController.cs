@@ -8,13 +8,22 @@ namespace ProyGestorGym.Controllers
     [ApiController]
     public abstract class GenericController<T> : ControllerBase where T : CamposControl
     {
-        protected IDB<T> _repositorio;
+        //CRUD
+        //Create->Post
+        //Read->Get
+        //Update->Put
+        //Delete->Delete
+
+        public IDB<T> _repositorio;
+
         public GenericController(IDB<T> repositorio)
         {
             _repositorio = repositorio;
         }
 
         [HttpGet]
+
+        // Obtener Todos
         public ActionResult<List<T>> Get()
         {
             try
@@ -33,13 +42,50 @@ namespace ProyGestorGym.Controllers
             {
                 return BadRequest(ex.Message);
             }
+
         }
+
         [HttpGet("{id}")]
-        public ActionResult<T> GetById(int id)
+        public ActionResult<T> GetById(string id)
         {
             try
             {
-                var datos = _repositorio.ObtenerPorId(id);
+                T datos;
+
+                if (int.TryParse(id, out int idEntero))
+                {
+                    // Llamamos a la sobrecarga que usa int
+                    datos = _repositorio.ObtenerPorId(idEntero);
+                }
+                else
+                {
+                    // Llamamos a la sobrecarga que usa string
+                    datos = _repositorio.ObtenerPorId(id);
+                }
+
+                if (datos != null)
+                {
+                    return Ok(datos);
+                }
+                else
+                {
+                    return NotFound($"No se encontró el elemento con ID {id}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error en el servidor: {ex.Message}");
+            }
+        }
+
+
+
+        [HttpPost]
+        public ActionResult<T> Post(T entidad)
+        {
+            try
+            {
+                var datos = _repositorio.Insertar(entidad);
                 if (datos != null)
                 {
                     return Ok(datos);
@@ -54,70 +100,63 @@ namespace ProyGestorGym.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
-        // Insertar un nuevo elemento
-        [HttpPost]
-        public ActionResult<T> Post([FromBody] T entidad)
-        {
-            try
-            {
-                var datos = _repositorio.Insertar(entidad);
-                if (datos == null)
-                {
-                    return BadRequest(_repositorio.Error?.ToString());
-                }
-                else
-                {
-                    return Ok(datos);
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        // Eliminar un elemento
-        [HttpDelete("{entidad}")]
-        public ActionResult<bool> Delete([FromBody] T entidad)
-        {
-            try
-            {
-                var datos = _repositorio.Eliminar(entidad);
-                if (datos)
-                {
-                    return Ok(datos);
-                }
-                else
-                {
-                    return BadRequest(_repositorio.Error?.ToString());
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        // Actualizar un elemento
         [HttpPut]
-        public ActionResult<T> Put([FromBody] T entidad)
+        public ActionResult<T> Put(T entidad)
         {
             try
             {
                 var datos = _repositorio.Actualizar(entidad);
-                if (datos == null)
+                if (datos != null)
                 {
-                    return BadRequest(_repositorio.Error?.ToString());
+                    return Ok(datos);
                 }
                 else
                 {
-                    return Ok(datos);
+                    return BadRequest(_repositorio.Error);
                 }
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+        [HttpDelete("{id}")]
+        public ActionResult Delete(string id)
+        {
+            try
+            {
+                T entidad;
+
+                if (int.TryParse(id, out int idEntero))
+                {
+                    // Buscar por ID numérico
+                    entidad = _repositorio.ObtenerPorId(idEntero);
+                }
+                else
+                {
+                    // Buscar por ID alfanumérico
+                    entidad = _repositorio.ObtenerPorId(id);
+                }
+
+                if (entidad == null)
+                {
+                    return NotFound($"No se encontró el recurso con ID {id}.");
+                }
+
+                // Intentar eliminar la entidad
+                var resultado = _repositorio.Eliminar(entidad);
+                if (resultado)
+                {
+                    return NoContent(); // 204 No Content si la eliminación fue exitosa
+                }
+                else
+                {
+                    return BadRequest($"No se pudo eliminar el recurso con ID {id}. Error: {_repositorio.Error}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error en el servidor: {ex.Message}");
             }
         }
     }

@@ -1,0 +1,130 @@
+﻿@page "/catalogos/Entrenadores"
+
+<h3>Registro de Entrenadores</h3>
+
+<br />
+<RadzenButton Text="Agregar" Icon="add" ButtonStyle="ButtonStyle.Success" Click="(()=>Editar(new Entrenadores()))" />
+<br />
+<br />
+<RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="30" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                Data="@entrenadores" TItem="Entrenadores">
+    <Columns>
+        <RadzenDataGridColumn Property="Id" Title="ID" Width="50" />
+        <RadzenDataGridColumn Property="Nombre" Title="Nombre" Width="50" />
+        <RadzenDataGridColumn Property="Especialidad" Title="Especialidad" Width="50" />
+        <RadzenDataGridColumn Property="Telefono" Title="Telefono" Width="50" />
+        <RadzenDataGridColumn Property="Email" Title="Email" Width="50" />
+        <RadzenDataGridColumn Title="Acciones">
+            <Template Context="data">
+                <RadzenButton Click="(()=>Editar(data))" ButtonStyle="ButtonStyle.Warning" Icon="edit" />
+                <RadzenButton Click="(()=>Eliminar(data))" ButtonStyle="ButtonStyle.Danger" Icon="delete" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    EntrenadoresManager entrenadoresManager;
+    List<Entrenadores> entrenadores;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        entrenadoresManager = FabricManager.EntrenadoresManager;
+        ActualizarTabla();
+    }
+
+    void ActualizarTabla()
+    {
+        entrenadores = entrenadoresManager.ObtenerTodos().Result ?? new List<Entrenadores>();
+        InvokeAsync(StateHasChanged);
+    }
+
+    async Task Editar(Entrenadores entrenadores)
+    {
+        string titulo = entrenadores.Id == 0 ? "Nuevo Entrenador" : $"Editar {entrenadores.Nombre}";
+        var result = await dialogService.OpenAsync(titulo, ds =>
+
+    @<RadzenStack Gap="1.5rem">
+        <div class="row">
+            <div class="col-4">Nombre</div>
+            <div class="col-8">
+                <RadzenTextBox @bind-Value="entrenadores.Nombre" Placeholder="Nombre del entrenador" class="w-100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">Especialidad</div>
+            <div class="col-8">
+                <RadzenTextBox @bind-Value="entrenadores.Especialidad" Placeholder="Ej. Boxeo, Cardio" class="w-100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">Telefono</div>
+            <div class="col-8">
+                <RadzenTextBox @bind-Value="entrenadores.Telefono" Placeholder="Número de contacto" class="w-100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">Email</div>
+            <div class="col-8">
+                <RadzenTextBox @bind-Value="entrenadores.Email" Placeholder="Correo electrónico" class="w-100" />
+            </div>
+        </div>
+        <div class="row mt-4 justify-content-end">
+            <div class="col-auto">
+                <RadzenButton Text="Guardar" Icon="save" ButtonStyle="ButtonStyle.Primary" Click="(() => Guardar(entrenadores))" Style="min-width: 120px;" />
+            </div>
+            <div class="col-auto">
+                <RadzenButton Text="Cancelar" Icon="close" ButtonStyle="ButtonStyle.Secondary" Click="(() => dialogService.Close(false))" Style="min-width: 120px;" />
+            </div>
+        </div>
+    </RadzenStack>
+
+    , new DialogOptions()
+    {
+        Draggable = true,
+        ShowClose = true,
+        Resizable = true,
+        Width = "500px",
+        Height = "400px"
+    });
+    }
+
+    async Task Guardar(Entrenadores entrenadores)
+    {
+        Entrenadores resultado;
+        if (entrenadores.Id == 0)
+        {
+            resultado = await entrenadoresManager.Agregar(entrenadores);
+        }
+        else
+        {
+            resultado = await entrenadoresManager.Modificar(entrenadores);
+        }
+
+        if (resultado != null)
+        {
+            dialogService.Close(true);
+            ActualizarTabla();
+        }
+        else
+        {
+            await dialogService.Alert(entrenadoresManager.Error, "Error al guardar");
+        }
+    }
+
+    async Task Eliminar(Entrenadores entrenadores)
+    {
+        var r = await dialogService.Confirm($"¿Realmente deseas eliminar al Entrenador '{entrenadores.Nombre}'?", "Advertencia",
+            new ConfirmOptions() { OkButtonText = "Sí", CancelButtonText = "No" });
+
+        if (r.Value)
+        {
+            var eliminado = await entrenadoresManager.Eliminar(entrenadores.Id.ToString());
+            if (eliminado)
+            {
+                ActualizarTabla();
+            }
+        }
+    }
+}
