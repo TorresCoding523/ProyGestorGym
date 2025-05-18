@@ -1,19 +1,19 @@
-﻿@page "/catalogos/Entrenadores"
+﻿@page "/catalogos/Membresias"
 
-<h3>Registro de Entrenadores</h3>
+<h3>Registro de Membresias</h3>
 
 <br />
-<RadzenButton Text="Agregar" Icon="add" ButtonStyle="ButtonStyle.Success" Click="(()=>Editar(new Entrenadores()))" />
+<RadzenButton Text="Agregar" Icon="add" ButtonStyle="ButtonStyle.Success" Click="(()=>Editar(new Membresias()))" />
 <br />
 <br />
 <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="30" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
-                Data="@entrenadores" TItem="Entrenadores">
+                Data="@membresias" TItem="Membresias">
     <Columns>
-        <RadzenDataGridColumn Property="IdEntrenador" Title="ID" Width="50" />
+        <RadzenDataGridColumn Property="IdMembresia" Title="ID" Width="50" />
         <RadzenDataGridColumn Property="Nombre" Title="Nombre" Width="50" />
-        <RadzenDataGridColumn Property="Especialidad" Title="Especialidad" Width="50" />
-        <RadzenDataGridColumn Property="Telefono" Title="Telefono" Width="50" />
-        <RadzenDataGridColumn Property="Email" Title="Email" Width="50" />
+        <RadzenDataGridColumn Property="Precio" Title="Precio" Width="50" />
+        <RadzenDataGridColumn Property="Duracion" Title="Duracion" Width="50" />
+        <RadzenDataGridColumn Property="Beneficios" Title="Beneficios" Width="50" />
         <RadzenDataGridColumn Title="Acciones">
             <Template Context="data">
                 <RadzenButton Click="(()=>Editar(data))" ButtonStyle="ButtonStyle.Warning" Icon="edit" />
@@ -24,56 +24,56 @@
 </RadzenDataGrid>
 
 @code {
-    EntrenadoresManager entrenadoresManager;
-    List<Entrenadores> entrenadores;
+    MembresiasManager membresiasManager;
+    List<Membresias> membresias;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        entrenadoresManager = FabricManager.EntrenadoresManager;
+        membresiasManager = FabricManager.MembresiasManager;
         ActualizarTabla();
     }
 
     void ActualizarTabla()
     {
-        entrenadores = entrenadoresManager.ObtenerTodos().Result ?? new List<Entrenadores>();
+        membresias = membresiasManager.ObtenerTodos().Result ?? new List<Membresias>();
         InvokeAsync(StateHasChanged);
     }
 
-    async Task Editar(Entrenadores entrenadores)
+    async Task Editar(Membresias membresias)
     {
-        string titulo = entrenadores.IdEntrenador == 0 ? "Nuevo Entrenador" : $"Editar {entrenadores.Nombre}";
+        string titulo = membresias.IdMembresia == 0 ? "Nueva Membresia" : $"Editar {membresias.Nombre}";
         var result = await dialogService.OpenAsync(titulo, ds =>
 
     @<RadzenStack Gap="1.5rem">
         <div class="row">
             <div class="col-4">Nombre</div>
             <div class="col-8">
-                <RadzenTextBox @bind-Value="entrenadores.Nombre" Placeholder="Nombre del entrenador" class="w-100" />
+                <RadzenTextBox @bind-Value="membresias.Nombre" Placeholder="Ej. Membresía Premium" class="w-100" />
             </div>
         </div>
         <div class="row">
-            <div class="col-4">Especialidad</div>
+            <div class="col-4">Precio</div>
             <div class="col-8">
-                <RadzenTextBox @bind-Value="entrenadores.Especialidad" Placeholder="Ej. Boxeo, Cardio" class="w-100" />
+                <RadzenNumeric @bind-Value="membresias.Precio" Placeholder="Ej. 499.99" Step="0.01" class="w-100" />
             </div>
         </div>
         <div class="row">
-            <div class="col-4">Teléfono</div>
+            <div class="col-4">Duración (días)</div>
             <div class="col-8">
-                <RadzenTextBox @bind-Value="entrenadores.Telefono" Placeholder="Número de contacto" class="w-100" />
+                <RadzenNumeric @bind-Value="membresias.Duracion" Placeholder="Ej. 30" class="w-100" />
             </div>
         </div>
         <div class="row">
-            <div class="col-4">Email</div>
+            <div class="col-4">Beneficios</div>
             <div class="col-8">
-                <RadzenTextBox @bind-Value="entrenadores.Email" Placeholder="Correo electrónico" class="w-100" />
+                <RadzenTextArea @bind-Value="membresias.Beneficios" Placeholder="Ej. Acceso a clases, descuentos..." class="w-100" />
             </div>
         </div>
         <div class="row">
             <div class="col-6"></div>
             <div class="col-3">
-                <RadzenButton Text="Guardar" ButtonStyle="ButtonStyle.Primary" Click="(() => Guardar(entrenadores))" />
+                <RadzenButton Text="Guardar" ButtonStyle="ButtonStyle.Primary" Click="(() => Guardar(membresias))" />
             </div>
             <div class="col-3">
                 <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Secondary" Click="(() => dialogService.Close(false))" />
@@ -88,20 +88,20 @@
         ShowClose = true,
         Resizable = true,
         Width = "600px",
-        Height = "400px"
+        Height = "430px"
     });
     }
 
-    async Task Guardar(Entrenadores entrenadores)
+    async Task Guardar(Membresias membresias)
     {
-        Entrenadores resultado;
-        if (entrenadores.IdEntrenador == 0)
+        Membresias resultado;
+        if (membresias.IdMembresia == 0)
         {
-            resultado = await entrenadoresManager.Agregar(entrenadores);
+            resultado = await membresiasManager.Agregar(membresias);
         }
         else
         {
-            resultado = await entrenadoresManager.Modificar(entrenadores);
+            resultado = await membresiasManager.Modificar(membresias);
         }
 
         if (resultado != null)
@@ -111,18 +111,18 @@
         }
         else
         {
-            await dialogService.Alert(entrenadoresManager.Error, "Error al guardar");
+            await dialogService.Alert(membresiasManager.Error, "Error al guardar");
         }
     }
 
-    async Task Eliminar(Entrenadores entrenadores)
+    async Task Eliminar(Membresias membresias)
     {
-        var r = await dialogService.Confirm($"¿Realmente deseas eliminar al Entrenador '{entrenadores.Nombre}'?", "Advertencia",
+        var r = await dialogService.Confirm($"¿Realmente deseas eliminar la Membresia '{membresias.Nombre}'?", "Advertencia",
             new ConfirmOptions() { OkButtonText = "Sí", CancelButtonText = "No" });
 
         if (r.Value)
         {
-            var eliminado = await entrenadoresManager.Eliminar(entrenadores.IdEntrenador.ToString());
+            var eliminado = await membresiasManager.Eliminar(membresias.IdMembresia.ToString());
             if (eliminado)
             {
                 ActualizarTabla();

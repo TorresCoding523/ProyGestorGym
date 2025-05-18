@@ -1,0 +1,148 @@
+﻿@page "/catalogos/Reservas"
+
+<h3>Registro de Reservas</h3>
+
+<br />
+@* <RadzenButton Text="Agregar" Icon="add" ButtonStyle="ButtonStyle.Success" Click="(()=>Editar(new Reservas()))" /> *@
+<br />
+<br />
+<RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="30" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                Data="@reservas" TItem="Reservas">
+    <Columns>
+        <RadzenDataGridColumn Property="IdReserva" Title="ID" Width="50" />
+        <RadzenDataGridColumn Property="UsuarioId" Title="Nombre del Usuario" Width="50" />
+        <RadzenDataGridColumn Property="ClaseId" Title="Nombre de la Clase" Width="50" />
+        <RadzenDataGridColumn Property="FechaReserva" Title="Fecha de la Reserva" Width="50" />
+        <RadzenDataGridColumn Property="Estado" Title="Estado" Width="50" />
+        <RadzenDataGridColumn Title="Acciones">
+            <Template Context="data">
+                <RadzenButton Click="(()=>VerDetalle(data))" ButtonStyle="ButtonStyle.Warning" Icon="find_in_page" />
+                @* <RadzenButton Click="(()=>Eliminar(data))" ButtonStyle="ButtonStyle.Danger" Icon="delete" /> *@
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    ReservasManager reservasManager;
+    List<Reservas> reservas;
+
+    UsuariosManager usuariosManager;
+    List<Usuarios> usuarios;
+
+    ClasesManager clasesManager;
+    List<Clases> clases;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        reservasManager = FabricManager.ReservasManager;
+        usuariosManager = FabricManager.UsuariosManager;
+        clasesManager = FabricManager.ClasesManager;
+
+        usuarios = usuariosManager.ObtenerTodos().Result;
+        clases = clasesManager.ObtenerTodos().Result;
+
+        ActualizarTabla();
+    }
+
+    void ActualizarTabla()
+    {
+        reservas = reservasManager.ObtenerTodos().Result ?? new List<Reservas>();
+        InvokeAsync(StateHasChanged);
+    }
+
+    async Task VerDetalle(Reservas reservas)
+    {
+        string titulo = reservas.IdReserva == 0 ? "Nuevo Reserva" : $"Editar {reservas.IdReserva}";
+        var result = await dialogService.OpenAsync(titulo, ds =>
+
+    @<RadzenStack Gap="1.5rem">
+        <div class="row">
+            <div class="col-4">Nombre</div>
+            <div class="col-8">
+                <RadzenLabel @bind-Value="reservas.UsuarioId" Placeholder="Nombre del entrenador" TValue="int"
+                               ValueProperty="IdUsuario"
+                               TextProperty="Nombre"
+                               class="w-100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">Especialidad</div>
+            <div class="col-8">
+                <RadzenLabel @bind-Value="reservas.ClaseId" Placeholder="Ej. Boxeo, Cardio" TValue="int"
+                             ValueProperty="IdClase"
+                             TextProperty="Nombre"
+                             class="w-100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">Teléfono</div>
+            <div class="col-8">
+                <RadzenLabel @bind-Value="reservas.FechaReserva" Placeholder="Número de contacto" class="w-100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">Email</div>
+            <div class="col-8">
+                <RadzenLabel @bind-Value="reservas.Estado" Placeholder="Correo electrónico" class="w-100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6"></div>
+            <div class="col-3">
+                <RadzenButton Text="Cerrar" ButtonStyle="ButtonStyle.Secondary" Click="(() => dialogService.Close(false))" />
+            </div>
+        </div>
+    </RadzenStack>
+
+
+    , new DialogOptions()
+    {
+        Draggable = true,
+        ShowClose = true,
+        Resizable = true,
+        Width = "600px",
+        Height = "400px"
+    });
+    }
+
+    // async Task Guardar(Reservas reservas)
+    // {
+    //     Reservas resultado;
+    //     if (reservas.IdReserva == 0)
+    //     {
+    //         resultado = await reservasManager.Agregar(reservas);
+    //     }
+    //     else
+    //     {
+    //         resultado = await reservasManager.Modificar(reservas);
+    //     }
+
+    //     if (resultado != null)
+    //     {
+    //         dialogService.Close(true);
+    //         ActualizarTabla();
+    //     }
+    //     else
+    //     {
+    //         await dialogService.Alert(reservasManager.Error, "Error al guardar");
+    //     }
+    // }
+
+    // async Task Eliminar(Reservas reservas)
+    // {
+    //     var r = await dialogService.Confirm($"¿Realmente deseas eliminar la Reserva '{reservas.IdReserva}'?", "Advertencia",
+    //         new ConfirmOptions() { OkButtonText = "Sí", CancelButtonText = "No" });
+
+    //     if (r.Value)
+    //     {
+    //         var eliminado = await reservasManager.Eliminar(reservas.IdReserva.ToString());
+    //         if (eliminado)
+    //         {
+    //             ActualizarTabla();
+    //         }
+    //     }
+    // }
+}

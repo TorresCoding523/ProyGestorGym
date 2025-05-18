@@ -25,7 +25,7 @@ namespace DAL
             switch (_tipo)
             {
                 case TipoBD.MySQL:
-                    return new DBMySQL<Clases>(_cadenaConexion, new ClasesValidador(), "Id", true);
+                    return new DBMySQL<Clases>(_cadenaConexion, new ClasesValidador(), "IdClase", true);
                 default:
                     return null;
             }
@@ -37,7 +37,7 @@ namespace DAL
             switch (_tipo)
             {
                 case TipoBD.MySQL:
-                    return new DBMySQL<Entrenadores>(_cadenaConexion, new EntrenadoresValidador(), "Id", true);
+                    return new DBMySQL<Entrenadores>(_cadenaConexion, new EntrenadoresValidador(), "IdEntrenador", true);
                 default:
                     return null;
             }
@@ -49,7 +49,7 @@ namespace DAL
             switch (_tipo)
             {
                 case TipoBD.MySQL:
-                    return new DBMySQL<Membresias>(_cadenaConexion, new MembresiasValidador(), "Id", true);
+                    return new DBMySQL<Membresias>(_cadenaConexion, new MembresiasValidador(), "IdMembresia", true);
                 default:
                     return null;
             }
@@ -61,7 +61,7 @@ namespace DAL
             switch (_tipo)
             {
                 case TipoBD.MySQL:
-                    return new DBMySQL<Pagos>(_cadenaConexion, new PagosValidador(), "Id", true);
+                    return new DBMySQL<Pagos>(_cadenaConexion, new PagosValidador(), "IdPago", true);
                 default:
                     return null;
             }
@@ -73,7 +73,7 @@ namespace DAL
             switch (_tipo)
             {
                 case TipoBD.MySQL:
-                    return new DBMySQL<Reservas>(_cadenaConexion, new ReservasValidador(), "Id", true);
+                    return new DBMySQL<Reservas>(_cadenaConexion, new ReservasValidador(), "IdReserva", true);
                 default:
                     return null;
             }
@@ -85,7 +85,7 @@ namespace DAL
             switch (_tipo)
             {
                 case TipoBD.MySQL:
-                    return new DBMySQL<Usuarios>(_cadenaConexion, new UsuariosValidador(), "Id", true);
+                    return new DBMySQL<Usuarios>(_cadenaConexion, new UsuariosValidador(), "IdUsuario", true);
                 default:
                     return null;
             }

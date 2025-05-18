@@ -8,7 +8,7 @@ namespace COMMON.Entidades
 {
     public class Entrenadores : CamposControl
     {
-        public int Id { get; set; }
+        public int IdEntrenador { get; set; }
         public string Nombre { get; set; }
         public string Especialidad { get; set; }
         public string Telefono { get; set; }

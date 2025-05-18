@@ -8,7 +8,7 @@ namespace COMMON.Entidades
 {
     public class Pagos : CamposControl
     {
-        public int Id { get; set; }
+        public int IdPago { get; set; }
         public int UsuarioId { get; set; }
         public decimal Monto { get; set; }
         public string MetodoPago { get; set; }

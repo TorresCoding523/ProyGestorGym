@@ -1,0 +1,154 @@
+﻿@page "/catalogos/Pagos"
+
+<h3>CatPagosPages</h3>
+
+<br />
+<RadzenButton Text="Agregar" Icon="add" ButtonStyle="ButtonStyle.Success" Click="(()=>Editar(new Pagos()))" />
+<br />
+<br />
+<RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="30" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                Data="@pagos" TItem="Pagos">
+    <Columns>
+        <RadzenDataGridColumn Property="IdPago" Title="ID" Width="50" />
+        <RadzenDataGridColumn Property="UsuarioId" Title="Nombre del Usuario" Width="50" />
+        <RadzenDataGridColumn Property="Monto" Title="Monto" Width="50" />
+        <RadzenDataGridColumn Property="MetodoPago" Title="Metodo de Pago" Width="50" />
+        <RadzenDataGridColumn Property="Estado" Title="Estado" Width="50" />
+        <RadzenDataGridColumn Property="FechaPago" Title="FechaPago" Width="50" />
+        <RadzenDataGridColumn Title="Acciones">
+            <Template Context="data">
+                <RadzenButton Click="(()=>Editar(data))" ButtonStyle="ButtonStyle.Warning" Icon="edit" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    PagosManager pagosManager;
+    List<Pagos> pagos;
+
+    UsuariosManager usuariosManager;
+    List<Usuarios> usuarios;
+
+    Dictionary<string, string> MetodoDePago;
+    Dictionary<string, string> Estado;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        pagosManager = FabricManager.PagosManager;
+        usuariosManager = FabricManager.UsuariosManager;
+
+        usuarios = usuariosManager.ObtenerTodos().Result;
+
+        MetodoDePago = new Dictionary<string, string>();
+        MetodoDePago.Add("transferencia", "Transferencia");
+        MetodoDePago.Add("efectivo", "Efectivo");
+        MetodoDePago.Add("tarjeta", "Tarjeta");
+
+        Estado = new Dictionary<string, string>();
+        Estado.Add("pagado", "Pagado");
+        Estado.Add("pendiente", "Pendiente");
+        Estado.Add("fallido", "Fallido");
+
+        ActualizarTabla();
+    }
+
+    void ActualizarTabla()
+    {
+        pagos = pagosManager.ObtenerTodos().Result ?? new List<Pagos>();
+        InvokeAsync(StateHasChanged);
+    }
+
+    async Task Editar(Pagos pagos)
+    {
+        string titulo = pagos.IdPago == 0 ? "Nuevo Pago" : $"Editar {pagos.IdPago}";
+        var result = await dialogService.OpenAsync(titulo, ds =>
+
+    @<RadzenStack Gap="1.5rem">
+        <div class="row">
+            <div class="col-4">Nombre del Usuario</div>
+            <div class="col-8">
+                <RadzenDropDown @bind-Value="pagos.UsuarioId"
+                                Data="usuarios"
+                                Placeholder="Nombre de la clase"
+                                TValue="int"
+                                ValueProperty="Nombre"
+                                TextProperty="Nombre"
+                                class="w-100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">Monto</div>
+            <div class="col-8">
+                <RadzenLabel @bind-Value="pagos.Monto" Placeholder="Ej. Boxeo, Cardio" TValue="int"
+                             ValueProperty="IdClase"
+                             TextProperty="Nombre"
+                             class="w-100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">Metodo de Pago</div>
+            <div class="col-8">
+                <RadzenDropDown @bind-Value="pagos.MetodoPago" Placeholder="Número de contacto" Data="MetodoDePago" TValue="string" ValueProperty="Key" TextProperty="Value" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">Estado</div>
+            <div class="col-8">
+                <RadzenDropDown @bind-Value="pagos.Estado" Placeholder="Correo electrónico" Data="Estado" TValue="string" ValueProperty="Key" TextProperty="Value" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">Fecha de Pago</div>
+            <div class="col-8">
+                <RadzenDatePicker @bind-Value="pagos.FechaPago" Placeholder="Correo electrónico" class="w-100" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6"></div>
+            <div class="col-3">
+                <RadzenButton Text="Guardar" ButtonStyle="ButtonStyle.Primary" Click="(() => Guardar(pagos))" />
+            </div>
+            <div class="col-3">
+                <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Secondary" Click="(() => dialogService.Close(false))" />
+            </div>
+        </div>
+    </RadzenStack>
+
+
+    , new DialogOptions()
+    {
+        Draggable = true,
+        ShowClose = true,
+        Resizable = true,
+        Width = "600px",
+        Height = "400px"
+    });
+    }
+
+    async Task Guardar(Pagos pagos)
+    {
+        Pagos resultado;
+        if (pagos.IdPago == 0)
+        {
+            resultado = await pagosManager.Agregar(pagos);
+        }
+        else
+        {
+            resultado = await pagosManager.Modificar(pagos);
+        }
+
+        if (resultado != null)
+        {
+            dialogService.Close(true);
+            ActualizarTabla();
+        }
+        else
+        {
+            await dialogService.Alert(pagosManager.Error, "Error al guardar");
+        }
+    }
+
+}

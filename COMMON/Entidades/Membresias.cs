@@ -8,7 +8,7 @@ namespace COMMON.Entidades
 {
     public class Membresias : CamposControl
     {
-        public int Id { get; set; }
+        public int IdMembresia { get; set; }
         public string Nombre { get; set; }
         public decimal Precio { get; set; }
         public int Duracion { get; set; } // En días

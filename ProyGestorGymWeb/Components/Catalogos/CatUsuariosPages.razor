@@ -1,0 +1,122 @@
+﻿@page "/catalogos/Usuarios"
+
+<h3>Registro de Usuarios</h3>
+
+<br />
+<RadzenButton Text="Agregar" Icon="add" ButtonStyle="ButtonStyle.Success" Click="(()=>Editar(new Usuarios()))" />
+<br />
+<br />
+<RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="30" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                Data="@usuarios" TItem="Usuarios">
+    <Columns>
+        <RadzenDataGridColumn Property="IdUsuario" Title="ID" Width="50" />
+        <RadzenDataGridColumn Property="Nombre" Title="Nombre" Width="50" />
+        <RadzenDataGridColumn Property="Apellido" Title="Especialidad" Width="50" />
+        <RadzenDataGridColumn Property="Telefono" Title="Telefono" Width="50" />
+        <RadzenDataGridColumn Property="Email" Title="Email" Width="50" />
+        <RadzenDataGridColumn Property="Contraseña" Title="Contraseña" Width="50" />
+        <RadzenDataGridColumn Title="Acciones">
+            <Template Context="data">
+                <RadzenButton Click="(()=>Editar(data))" ButtonStyle="ButtonStyle.Warning" Icon="edit" />
+                <RadzenButton Click="(()=>Eliminar(data))" ButtonStyle="ButtonStyle.Danger" Icon="delete" />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    UsuariosManager usuariosManager;
+    List<Usuarios> usuarios;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        usuariosManager = FabricManager.UsuariosManager;
+        ActualizarTabla();
+    }
+
+    void ActualizarTabla()
+    {
+        usuarios = usuariosManager.ObtenerTodos().Result ?? new List<Usuarios>();
+        InvokeAsync(StateHasChanged);
+    }
+
+    async Task Editar(Usuarios usuarios)
+    {
+        string titulo = usuarios.IdUsuario == 0 ? "Nuevo Usuario" : $"Editar {usuarios.Nombre}";
+        var result = await dialogService.OpenAsync(titulo, ds =>
+
+    @<RadzenStack Gap="1.5rem">
+        <div class="row">
+            <div class="col-6">Nombre</div>
+            <div class="col-6">Apellido</div>
+        </div>
+        <div class="row">
+            <div class="col-6"><RadzenTextBox @bind-Value="usuarios.Nombre" Placeholder="Ej. Juan" class="w-100" /></div>
+            <div class="col-6"><RadzenTextBox @bind-Value="usuarios.Apellido" Placeholder="Ej. Pérez" class="w-100" /></div>
+        </div>
+        <div class="row">
+            <div class="col-3">Telefono</div>
+            <div class="col-6">Email</div>
+            <div class="col-3">Contraseña</div>
+        </div>
+        <div class="row">
+            <div class="col-3"><RadzenTextBox @bind-Value="usuarios.Telefono" Placeholder="Ej. 5551234567" class="w-100" /></div>
+            <div class="col-6"><RadzenTextBox @bind-Value="usuarios.Email" Placeholder="Ej. usuario@correo.com" class="w-100" /></div>
+            <div class="col-3"><RadzenTextBox @bind-Value="usuarios.Contraseña" Placeholder="Mínimo 8 caracteres" class="w-100" /></div>
+        </div>
+        <div class="row">
+            <div class="col-6"></div>
+            <div class="col-3"><RadzenButton Text="Guardar" ButtonStyle="ButtonStyle.Primary" Click="(() => Guardar(usuarios))" /></div>
+            <div class="col-3"><RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Secondary" Click="(() => dialogService.Close(false))" /></div>
+        </div>
+    </RadzenStack>
+
+    , new DialogOptions()
+    {
+        Draggable = true,
+        ShowClose = true,
+        Resizable = true,
+        Width = "800px",
+        Height = "400px"
+    });
+    }
+
+    async Task Guardar(Usuarios usuarios)
+    {
+        Usuarios resultado;
+        if (usuarios.IdUsuario == 0)
+        {
+            resultado = await usuariosManager.Agregar(usuarios);
+        }
+        else
+        {
+            resultado = await usuariosManager.Modificar(usuarios);
+        }
+
+        if (resultado != null)
+        {
+            dialogService.Close(true);
+            ActualizarTabla();
+        }
+        else
+        {
+            await dialogService.Alert(usuariosManager.Error, "Error al guardar");
+        }
+    }
+
+    async Task Eliminar(Usuarios usuarios)
+    {
+        var r = await dialogService.Confirm($"¿Realmente deseas eliminar al Usuario '{usuarios.Nombre}'?", "Advertencia",
+            new ConfirmOptions() { OkButtonText = "Sí", CancelButtonText = "No" });
+
+        if (r.Value)
+        {
+            var eliminado = await usuariosManager.Eliminar(usuarios.IdUsuario.ToString());
+            if (eliminado)
+            {
+                ActualizarTabla();
+            }
+        }
+    }
+}
